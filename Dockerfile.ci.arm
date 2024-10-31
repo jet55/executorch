@@ -26,13 +26,14 @@ COPY ${DOCKER_CONTEXT_DIR}/common/install_openssl.sh install_openssl.sh
 RUN bash ./install_openssl.sh && rm install_openssl.sh
 
 # Install clang
+ARG CLANG_VERSION=12
 COPY ${DOCKER_CONTEXT_DIR}/common/install_clang.sh install_clang.sh
 RUN bash ./install_clang.sh && rm install_clang.sh
 
 # Setup buck
 COPY ${DOCKER_CONTEXT_DIR}/ci_commit_pins/buck2.txt buck2.txt
 COPY ${DOCKER_CONTEXT_DIR}/common/install_buck.sh install_buck.sh
-RUN BUCK2_VERSION=$(cat buck2.txt) && bash ./install_buck.sh && rm install_buck.sh buck2.txt
+RUN BUCK2_VERSION=$(cat buck2.txt) bash ./install_buck.sh && rm install_buck.sh buck2.txt
 
 # Setup user
 COPY ${DOCKER_CONTEXT_DIR}/common/install_user.sh install_user.sh
@@ -59,7 +60,7 @@ RUN bash ./install_cache.sh && rm install_cache.sh utils.sh
 COPY ${DOCKER_CONTEXT_DIR}/ci_commit_pins/pytorch.txt pytorch.txt
 COPY ${DOCKER_CONTEXT_DIR}/common/install_pytorch.sh install_pytorch.sh
 COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
-RUN TORCH_VERSION=$(cat pytorch.txt) && bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh pytorch.txt
+RUN TORCH_VERSION=$(cat pytorch.txt) bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh pytorch.txt
 
 # Setup ARM SDK
 COPY --chown=ci-user:ci-user examples/arm /opt/arm
