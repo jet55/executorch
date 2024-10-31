@@ -30,7 +30,7 @@ COPY ${DOCKER_CONTEXT_DIR}/common/install_clang.sh install_clang.sh
 RUN bash ./install_clang.sh && rm install_clang.sh
 
 # Setup buck
-ARG BUCK2_VERSION=$(cat ci_commit_pins/buck2.txt)
+ARG BUCK2_VERSION=$(cat ${DOCKER_CONTEXT_DIR}/ci_commit_pins/buck2.txt)
 COPY ${DOCKER_CONTEXT_DIR}/common/install_buck.sh install_buck.sh
 RUN bash ./install_buck.sh && rm install_buck.sh
 
@@ -56,7 +56,7 @@ COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
 RUN bash ./install_cache.sh && rm install_cache.sh utils.sh
 
 # Install PyTorch
-ARG TORCH_VERSION=$(cat ci_commit_pins/pytorch.txt)
+ARG TORCH_VERSION=$(cat ${DOCKER_CONTEXT_DIR}/ci_commit_pins/pytorch.txt)
 COPY ${DOCKER_CONTEXT_DIR}/common/install_pytorch.sh install_pytorch.sh
 COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
 RUN bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh
