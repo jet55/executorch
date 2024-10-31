@@ -44,8 +44,8 @@ RUN bash ./install_docs_reqs.sh && rm install_docs_reqs.sh
 
 # Install conda and Python dependencies
 ARG MINICONDA_VERSION=23.10.0-1
-COPY requirements-ci.txt /opt/conda/
-COPY conda-env-ci.txt /opt/conda/
+COPY ${DOCKER_CONTEXT_DIR}/requirements-ci.txt /opt/conda/
+COPY ${DOCKER_CONTEXT_DIR}/conda-env-ci.txt /opt/conda/
 COPY ${DOCKER_CONTEXT_DIR}/common/install_conda.sh install_conda.sh
 COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
 RUN bash ./install_conda.sh && rm install_conda.sh utils.sh /opt/conda/requirements-ci.txt /opt/conda/conda-env-ci.txt
@@ -62,7 +62,7 @@ COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
 RUN bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh
 
 # Setup ARM SDK
-COPY --chown=ci-user:ci-user ${DOCKER_CONTEXT_DIR}/../../examples/arm /opt/arm
+COPY --chown=ci-user:ci-user examples/arm /opt/arm
 RUN git config --global user.email "ossci@example.com"; git config --global user.name "OSS CI"; bash /opt/arm/setup.sh --i-agree-to-the-contained-eula /opt/arm-sdk; chown -R ci-user:ci-user /opt/arm-sdk
 
 # Set default user
