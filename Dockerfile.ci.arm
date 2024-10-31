@@ -1,0 +1,72 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Base image
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND noninteractive
+ENV OPENSSL_ROOT_DIR /opt/openssl
+ENV OPENSSL_DIR /opt/openssl
+ENV PYTHON_VERSION=3.10
+ENV PATH /opt/conda/envs/py_3.10/bin:/opt/conda/bin:/opt/cache/bin:$PATH
+ENV SCCACHE_BUCKET ossci-compiler-cache-circleci-v2
+ENV SCCACHE_S3_KEY_PREFIX executorch
+ENV DOCKER_CONTEXT_DIR .ci/docker
+
+# Install common dependencies
+COPY ${DOCKER_CONTEXT_DIR}/common/install_base.sh install_base.sh
+RUN bash ./install_base.sh && rm install_base.sh
+
+# Install OpenSSL
+COPY ${DOCKER_CONTEXT_DIR}/common/install_openssl.sh install_openssl.sh
+RUN bash ./install_openssl.sh && rm install_openssl.sh
+
+# Install clang
+COPY ${DOCKER_CONTEXT_DIR}/common/install_clang.sh install_clang.sh
+RUN bash ./install_clang.sh && rm install_clang.sh
+
+# Setup buck
+ARG BUCK2_VERSION=$(cat ci_commit_pins/buck2.txt)
+COPY ${DOCKER_CONTEXT_DIR}/common/install_buck.sh install_buck.sh
+RUN bash ./install_buck.sh && rm install_buck.sh
+
+# Setup user
+COPY ${DOCKER_CONTEXT_DIR}/common/install_user.sh install_user.sh
+RUN bash ./install_user.sh && rm install_user.sh
+
+# Install docs requirements
+COPY ${DOCKER_CONTEXT_DIR}/common/install_docs_reqs.sh install_docs_reqs.sh
+RUN bash ./install_docs_reqs.sh && rm install_docs_reqs.sh
+
+# Install conda and Python dependencies
+ARG MINICONDA_VERSION=23.10.0-1
+COPY requirements-ci.txt /opt/conda/
+COPY conda-env-ci.txt /opt/conda/
+COPY ${DOCKER_CONTEXT_DIR}/common/install_conda.sh install_conda.sh
+COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
+RUN bash ./install_conda.sh && rm install_conda.sh utils.sh /opt/conda/requirements-ci.txt /opt/conda/conda-env-ci.txt
+
+# Install sccache
+COPY ${DOCKER_CONTEXT_DIR}/common/install_cache.sh install_cache.sh
+COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
+RUN bash ./install_cache.sh && rm install_cache.sh utils.sh
+
+# Install PyTorch
+ARG TORCH_VERSION=$(cat ci_commit_pins/pytorch.txt)
+COPY ${DOCKER_CONTEXT_DIR}/common/install_pytorch.sh install_pytorch.sh
+COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
+RUN bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh
+
+# Setup ARM SDK
+COPY --chown=ci-user:ci-user ${DOCKER_CONTEXT_DIR}/../../examples/arm /opt/arm
+RUN git config --global user.email "ossci@example.com"; git config --global user.name "OSS CI"; bash /opt/arm/setup.sh --i-agree-to-the-contained-eula /opt/arm-sdk; chown -R ci-user:ci-user /opt/arm-sdk
+
+# Set default user
+USER ci-user
+
+# Default command
+CMD ["bash"]
