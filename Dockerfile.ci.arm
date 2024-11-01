@@ -57,10 +57,7 @@ COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
 RUN bash ./install_cache.sh && rm install_cache.sh utils.sh
 
 # Install PyTorch
-COPY ${DOCKER_CONTEXT_DIR}/ci_commit_pins/pytorch.txt pytorch.txt
-COPY ${DOCKER_CONTEXT_DIR}/common/install_pytorch.sh install_pytorch.sh
-COPY ${DOCKER_CONTEXT_DIR}/common/utils.sh utils.sh
-RUN TORCH_VERSION=$(cat pytorch.txt) bash ./install_pytorch.sh && rm install_pytorch.sh utils.sh pytorch.txt
+RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.5.1 torchaudio torchvision
 
 # Setup ARM SDK
 COPY --chown=ci-user:ci-user examples/arm /opt/arm
